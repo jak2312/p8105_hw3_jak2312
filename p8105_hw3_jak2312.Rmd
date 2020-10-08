@@ -1,0 +1,12 @@
+---
+title: "Homework 3"
+author: "Jared Klug"
+date: "10/8/2020"
+output: html_document
+
+---
+```{r load_lib}
+
+library(tidyverse)
+
+```
