@@ -26,5 +26,20 @@ activity_df = read.csv("./data/accel_data.csv") %>%
 
 ```
 
+The accelerometer data taken from a 63 yr-old male with BMI of 25, with `r nrow(activity_df)` observations and `r ncol(activity_df)` variables, contains the following variables:  
+
+* **week**: `r activity_df %>% pull(week) %>% typeof()` type designating which week the data was recorded from week `r activity_df %>% pull(week) %>% min()` to week `r activity_df %>% pull(week) %>% max()`
+
+* **day_id**: `r activity_df %>% pull(day_id) %>% typeof()` type designating which day of the 5 week period the data was recorded from day `r activity_df %>% pull(day_id) %>% min()` to day `r activity_df %>% pull(day_id) %>% max()`
+
+* **day**: `r activity_df %>% pull(day) %>% typeof()` type designating the day of the week to the corresponding data
+
+* **minute_of_day**: `r activity_df %>% pull(minute_of_day) %>% typeof()` type designating the minute of the day starting at midnight from minute `r activity_df %>% pull(minute_of_day) %>% min()` to minute `r activity_df %>% pull(minute_of_day) %>% max()`
+
+* **activity_count**: `r activity_df %>% pull(activity_count) %>% typeof()` type that measures accelerometer data that can be translated into physcial activity levels. 
+
+* **weekday_or_weekend**: `r activity_df %>% pull(weekday_or_weekend) %>% typeof()` type that says if the corresponding data was taken on a weekday or weekend
+
+
 
 ## Problem 3
