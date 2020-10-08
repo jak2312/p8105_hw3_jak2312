@@ -1,12 +1,30 @@
 ---
 title: "Homework 3"
 author: "Jared Klug"
-date: "10/8/2020"
-output: html_document
-
+output: github_document
 ---
 ```{r load_lib}
 
 library(tidyverse)
+library(p8105.datasets)
 
 ```
+
+## Problem 1
+
+## Problem 2
+
+```{r read_activity_df}
+
+activity_df = read.csv("./data/accel_data.csv") %>% 
+  pivot_longer(activity.1:activity.1440,
+               names_to = "minute_of_day",
+               names_prefix = "activity.",
+               values_to = "activity_count") %>% 
+  mutate(weekday_or_weekend = ifelse(day == "Saturday" | day == "Sunday", "weekend", "weekday"),
+         minute_of_day = as.integer(minute_of_day))
+
+```
+
+
+## Problem 3
