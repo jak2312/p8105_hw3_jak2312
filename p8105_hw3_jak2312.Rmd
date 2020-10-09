@@ -14,32 +14,115 @@ library(p8105.datasets)
 
 ## Problem 2
 
+* **Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).**
+
 ```{r read_activity_df}
 
 activity_df = read.csv("./data/accel_data.csv") %>% 
   pivot_longer(activity.1:activity.1440,
                names_to = "minute_of_day",
                names_prefix = "activity.",
-               values_to = "activity_count") %>% 
-  mutate(weekday_or_weekend = ifelse(day == "Saturday" | day == "Sunday", "weekend", "weekday"),
-         minute_of_day = as.integer(minute_of_day))
+               values_to = "activity_count"
+  ) %>% 
+  mutate(
+    weekday_or_weekend = ifelse(day == "Saturday" | day == "Sunday", "weekend", "weekday"),
+    minute_of_day = as.integer(minute_of_day)
+  ) %>% 
+  mutate(
+    day = factor(day, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+  )
 
 ```
 
 The accelerometer data taken from a 63 yr-old male with BMI of 25, with `r nrow(activity_df)` observations and `r ncol(activity_df)` variables, contains the following variables:  
 
-* **week**: `r activity_df %>% pull(week) %>% typeof()` type designating which week the data was recorded from week `r activity_df %>% pull(week) %>% min()` to week `r activity_df %>% pull(week) %>% max()`
+* **week**: `r activity_df %>% pull(week) %>% class()` type designating which week the data was recorded from week `r activity_df %>% pull(week) %>% min()` to week `r activity_df %>% pull(week) %>% max()`
 
-* **day_id**: `r activity_df %>% pull(day_id) %>% typeof()` type designating which day of the 5 week period the data was recorded from day `r activity_df %>% pull(day_id) %>% min()` to day `r activity_df %>% pull(day_id) %>% max()`
+* **day_id**: `r activity_df %>% pull(day_id) %>% class()` type designating which day of the 5 week period the data was recorded from day `r activity_df %>% pull(day_id) %>% min()` to day `r activity_df %>% pull(day_id) %>% max()`
 
-* **day**: `r activity_df %>% pull(day) %>% typeof()` type designating the day of the week to the corresponding data
+* **day**: `r activity_df %>% pull(day) %>% class()` type designating the day of the week to the corresponding data
 
-* **minute_of_day**: `r activity_df %>% pull(minute_of_day) %>% typeof()` type designating the minute of the day starting at midnight from minute `r activity_df %>% pull(minute_of_day) %>% min()` to minute `r activity_df %>% pull(minute_of_day) %>% max()`
+* **minute_of_day**: `r activity_df %>% pull(minute_of_day) %>% class()` type designating the minute of the day starting at midnight from minute `r activity_df %>% pull(minute_of_day) %>% min()` to minute `r activity_df %>% pull(minute_of_day) %>% max()`
 
-* **activity_count**: `r activity_df %>% pull(activity_count) %>% typeof()` type that measures accelerometer data that can be translated into physcial activity levels. 
+* **activity_count**: `r activity_df %>% pull(activity_count) %>% class()` type that measures accelerometer data that can be translated into physcial activity levels. 
 
-* **weekday_or_weekend**: `r activity_df %>% pull(weekday_or_weekend) %>% typeof()` type that says if the corresponding data was taken on a weekday or weekend
+* **weekday_or_weekend**: `r activity_df %>% pull(weekday_or_weekend) %>% class()` type that says if the corresponding data was taken on a weekday or weekend
 
+* **Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?**
 
+```{r table_activity}
 
+activity_df %>% 
+  group_by(week, day) %>% 
+  summarize(total_activity = sum(activity_count)) %>% 
+  pivot_wider(
+    names_from = "day",
+    values_from = "total_activity"
+  ) %>%
+  knitr::kable(digits = 0)
+  
+```
+
+It is hard to detect any trends in the table without more exploratory analysis. 
+
+* **Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.**
+
+```{r plot_activity}
+
+activity_df %>%
+  ggplot(aes(x = minute_of_day, y = activity_count, color = day)) + 
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "24Hr Activity Plot Over 5 Weeks",
+    x = "Minute of the Day (min)", 
+    y = "Activity Count (arbitrary unit)",
+    caption = "Accelerometer data of a 63yr old male with BMI of 25 over 5 weeks"
+  )
+  
+
+```
+
+From the plot we can see that at the start of the day we see very low activity, assuming that is this particular person sleeping. At around 6 am this person seems to wake up and start their day, indicated by the rise in activity level at around the 250-300 minute mark. This person then remains awake/active steadily throughout the week from minute 375 to 1250. This person seems to be less active during Saturdays compared to the rest of the week. This person also seems to be more active in the later half of the day with the exception of Sunday.  
+ 
 ## Problem 3
+
+```{r load_ny_noaa}
+
+data("ny_noaa")
+
+```
+
+This dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. 
+
+Observations made in this dataset are from NY based weather stations. The following variables are included in this dataset:
+
+* **id**: There are `r ny_noaa %>% distinct(id) %>% nrow` distinct weather stations reporting data
+
+* **date**: The dates corresponding to the reported weather data are from `r ny_noaa %>% pull(date) %>% min()` -- `r ny_noaa %>% pull(date) %>% max()`
+
+* **prcp**: Precipitation data reported in tenths of mm are reported. Indicates how much rain on a given day (# NAs: `r ny_noaa %>% pull(prcp) %>% is.na() %>% sum()`)  
+
+* **snow**: Snowfall data reported in mm. Indicates how much snow has fallen on a given day (# NAs: `r ny_noaa %>% pull(snow) %>% is.na() %>% sum()`) 
+
+* **snwd**: Snow depth data reported in mm. Indicates the max depth of snow on the ground on a given day (# NAs: `r ny_noaa %>% pull(snwd) %>% is.na() %>% sum()`) 
+
+* **tmax**: Maximum temperature on a given day reported in tenths of °C. (# NAs: `r ny_noaa %>% pull(tmax) %>% is.na() %>% sum()`) 
+
+* **tmin**: Minimum temperature on a given day reported in tenths of °C. (# NAs: `r ny_noaa %>% pull(tmin) %>% is.na() %>% sum()`) 
+
+The number of NA's in this dataset is concerning, especially if we want to do an analysis over the total period of time. However, for certain variables it is less significant than others. We can assume that for the observation days that report NA values for prcp, snow, and snwd that it did not rain nor snow on those days. However, if we want to do an analysis of min and max temperature variations over the whole time period, we cannot feasibly accomplish this due to the missing values. 
+
+* **Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?**
+
+##```{r clean_ny_noaa}
+
+ny_noaa %>% 
+  separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(
+    prcp = prcp / 10,
+    tmax = tmax / 10,
+    tmin = tmin / 10
+  )
+
+```
+
