@@ -79,8 +79,9 @@ activity_df %>%
     caption = "Accelerometer data of a 63yr old male with BMI of 25 over 5 weeks"
   )
   
-
 ```
+
+There were too many points to plot for a scatterplot to be interpreted. I opted to only keep a smoothed version as it will average the activity counts over the weeks for each day and present a more aesthetic graph. 
 
 From the plot we can see that at the start of the day we see very low activity, assuming that is this particular person sleeping. At around 6 am this person seems to wake up and start their day, indicated by the rise in activity level at around the 250-300 minute mark. This person then remains awake/active steadily throughout the week from minute 375 to 1250. This person seems to be less active during Saturdays compared to the rest of the week. This person also seems to be more active in the later half of the day with the exception of Sunday.  
  
@@ -110,19 +111,43 @@ Observations made in this dataset are from NY based weather stations. The follow
 
 * **tmin**: Minimum temperature on a given day reported in tenths of °C. (# NAs: `r ny_noaa %>% pull(tmin) %>% is.na() %>% sum()`) 
 
-The number of NA's in this dataset is concerning, especially if we want to do an analysis over the total period of time. However, for certain variables it is less significant than others. We can assume that for the observation days that report NA values for prcp, snow, and snwd that it did not rain nor snow on those days. However, if we want to do an analysis of min and max temperature variations over the whole time period, we cannot feasibly accomplish this due to the missing values. 
+The number of NA's in this dataset is concerning, especially if we want to do an analysis over the total period of time. However, for certain variables it is less significant than others. We can assume that for the days that the observations report NA values for prcp, snow, and snwd that it did not rain nor snow on those days. However, if we want to do an analysis of min and max temperature variations over the whole time period, we cannot feasibly accomplish this due to the missing values. 
 
 * **Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?**
 
-##```{r clean_ny_noaa}
+```{r clean_ny_noaa}
 
-ny_noaa %>% 
+ny_noaa_df = ny_noaa %>% 
   separate(date, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate(
+    tmax = as.integer(tmax),
+    tmin = as.integer(tmin)
+  ) %>% 
   mutate(
     prcp = prcp / 10,
     tmax = tmax / 10,
     tmin = tmin / 10
   )
+
+ny_noaa_df %>% 
+  count(snow) %>%
+  drop_na() %>% 
+  arrange(desc(n))
+```
+
+0mm is the most commonly reported value for snowfall, which makes sense as it only snows during the winter, and even then it is unlikely to snow during the winter. The following most common snowfall amounts range from ~ 5 - 100mm which is not much snowfall, probably what you would expect on a given day when it actually snows. 
+
+* **Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?**
+
+```{r plot_temp}
+
+ny_noaa_df %>% 
+  filter(month %in% c("01", "07")) %>% 
+  group_by(id, month,year) %>% 
+  summarise(mean_tmax = mean(tmax, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) +
+  geom_path() +
+  facet_grid(. ~ month)
 
 ```
 
