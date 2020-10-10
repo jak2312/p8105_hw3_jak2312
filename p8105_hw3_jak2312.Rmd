@@ -167,7 +167,8 @@ tmax_tmin_plot =
   labs(
     title = "Minimum Temperature vs Maximum Temperature",
     x = "Max Temp (°C)", 
-    y = "Minimum Temp (°C)"
+    y = "Minimum Temp (°C)",
+    caption = "x = y added to plot"
   )
   
 snow_plot = 
