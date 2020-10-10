@@ -7,10 +7,10 @@ output: github_document
 
 library(tidyverse)
 library(p8105.datasets)
+library(ggridges)
+library(patchwork)
 
 ```
-
-## Problem 1
 
 ## Problem 2
 
@@ -146,8 +146,39 @@ ny_noaa_df %>%
   group_by(id, month,year) %>% 
   summarise(mean_tmax = mean(tmax, na.rm = TRUE)) %>% 
   ggplot(aes(x = year, y = mean_tmax, group = id)) +
-  geom_path() +
-  facet_grid(. ~ month)
+  geom_point(alpha = .1) + 
+  geom_path(alpha = .3) +
+  facet_grid(. ~ month) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+```
+
+It is tough to see with so many points and lines overlapping each other, but it is clear that all the weather stations in NY report similar temperature ranges between each other with the exception of some outliers. We can interpret from the plot that January is colder than July and that the temperature ranges from ~ -10°C to 10°C and 20°C to 35°C respectively.
+
+* **Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.**
+
+```{r plot_tmax_tmin}
+
+tmax_tmin_plot = 
+  ny_noaa_df %>% 
+  ggplot(aes(x = tmax, y = tmin)) +
+  geom_hex() +
+  geom_abline(slope=1, intercept=0) +
+  labs(
+    title = "Minimum Temperature vs Maximum Temperature",
+    x = "Max Temp (°C)", 
+    y = "Minimum Temp (°C)"
+  )
+  
+snow_plot = 
+  ny_noaa_df %>% 
+  filter(
+    snow > 0, 
+    snow < 100,
+  ) %>% 
+  drop_na(snow) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  ggridges()
 
 ```
 
