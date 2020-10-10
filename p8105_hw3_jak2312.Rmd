@@ -12,6 +12,115 @@ library(patchwork)
 
 ```
 
+## Problem 1 
+
+```{r load_instacar}
+
+data("instacart")
+
+```
+
+The instacart dataset comes from Instacart, an online grocery shopping service, from 2017. With `r nrow(instacart)` observations and `r ncol(instacart)` variables, instacart contains the following variables:
+
+* **order_id**: Order identifier number (1 - 3421070)
+
+* **product_id**: Product identifier number (1-49688)
+
+* **add_to_cart_order**: Designates order at which product was added to cart by order_id
+
+* **reordered**: Indicates if product has been ordered by user in the past. (1: yes, 0: no)
+
+* **user_id**: Customer identification number
+
+* **eval_set**: Which evaluation set this order belongs in
+
+* **order_number**: Indicates order sequence of order_id by user
+
+* **order_dow**: Indicates day of the week the order was placed (0-6)
+
+* **order_hour_of_day**: Indicates hour of the day the order was placed (0-23)
+
+* **days_since_prior_order**: Days since last order (0-30, if more than 30 days - observation is 30)
+
+* **product_name**: Name of the product
+
+* **aisle_id**: Aisle Identification Number (1-134)
+
+* **department_id**: Department Identification Number (1-21)
+
+* **aisle**: Name of the aisle by aisle_id
+
+* **department**: Name of the department by department_id
+
+* **How many aisles are there, and which aisles are the most items ordered from?**
+
+This dataset contains info on both the user and the products, allowing us to identify trends in either user behavior or product specifications. Across the `r instacart %>% pull(department_id) %>% max()` departments, there are `r instacart %>% pull(aisle_id) %>% max()` aisles and `r instacart %>% pull(product_id) %>% max()` unique products to choose from. 
+
+```{r count_aisle}
+instacart %>% 
+	count(aisle) %>% 
+	arrange(desc(n))
+```
+
+The most popular items ordered are fruits and vegetables, followed by dairy, water, and snack products. 
+
+* **Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.** 
+
+```{r plot_aisle_ordered}
+instacart %>% 
+	count(aisle) %>% 
+	filter(n > 10000) %>% 
+	mutate(
+		aisle = factor(aisle),
+		aisle = fct_reorder(aisle, n)
+	) %>% 
+	ggplot(aes(x = aisle, y = n)) + 
+	geom_point() + 
+	theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs( 
+    title = "Number of Items Ordered in each Aisle",
+    x = "Aisle", 
+    y = "Number Ordered"
+  )
+  
+```
+
+As pointed out by the count function before, we see the same top aisles to be fruits and veggies, this plot is able to visualize just how much more fruits and vegetables are ordered compared to any other item by aisle. 
+
+* **Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table**
+
+```{r table_popular_in_aisle}
+
+instacart %>% 
+	filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+	group_by(aisle) %>% 
+	count(product_name) %>% 
+	mutate(rank = min_rank(desc(n))) %>% 
+	filter(rank < 4) %>% 
+	arrange(aisle, rank) %>% 
+  select(-rank) %>% 
+	knitr::kable()
+
+```
+
+In the baking ingredients, the 3 most popular items are light brown sugar, pure backing soda, and cane sugar. For dog food care, the top ordered items are treats, oragnix dog food, and small dog biscuits. The most popular packaged vegetable/fruit is baby spinach followed by raspberries then blueberries. 
+
+* **Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).**
+
+```{r table_apples_vs_icecream}
+instacart %>% 
+	filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+	group_by(product_name, order_dow) %>% 
+	summarize(mean_hour = mean(order_hour_of_day)) %>% 
+	pivot_wider(
+		names_from = order_dow,
+		values_from = mean_hour
+	) %>% 
+  knitr::kable()
+```
+
+From this table we can see that apples are typically ordered before ice cream, with the exception of the weekday 5. We can assume that earlier in the day people may be more inclined to order healthy foods while later in the day people are more likely to indulge in their sweet-tooth craving. 
+
 ## Problem 2
 
 * **Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).**
@@ -180,7 +289,7 @@ snow_plot =
   ) %>% 
   ggplot(aes(x = snow, y = year)) +
   geom_density_ridges(scale = .85) +
-  labs(
+  labs( 
     title = "Snowfall Data from NY Weather Stations: 1981 to 2010",
     x = "Snowfall Amount (mm)", 
     y = "Year"
