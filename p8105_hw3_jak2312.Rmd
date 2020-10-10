@@ -172,13 +172,20 @@ tmax_tmin_plot =
   
 snow_plot = 
   ny_noaa_df %>% 
+  drop_na(snow) %>% 
   filter(
     snow > 0, 
     snow < 100,
   ) %>% 
-  drop_na(snow) %>% 
-  ggplot(aes(x = year, y = snow)) +
-  ggridges()
+  ggplot(aes(x = snow, y = year)) +
+  geom_density_ridges(scale = .85) +
+  labs(
+    title = "Snowfall Data from NY Weather Stations: 1981 to 2010",
+    x = "Snowfall Amount (mm)", 
+    y = "Year"
+  )
+
+tmax_tmin_plot + snow_plot
 
 ```
 
